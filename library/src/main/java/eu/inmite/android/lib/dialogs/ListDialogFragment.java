@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
@@ -17,6 +18,8 @@ import android.widget.ListAdapter;
 public class ListDialogFragment extends BaseDialogFragment {
 
     private static String ARG_ITEMS = "items";
+    private static String ARG_IS_MULTICHOICE = "is_multichoice";
+    private static String ARG_CHECKED_ITEMS = "checked_items";
 
     public static SimpleListDialogBuilder createBuilder(Context context,
                                                         FragmentManager fragmentManager) {
@@ -41,6 +44,10 @@ public class ListDialogFragment extends BaseDialogFragment {
         private String cancelButtonText;
 
         private boolean mShowDefaultButton = true;
+
+        private boolean mIsMultiChoice;
+
+        private boolean[] mCheckedItems;
 
         public SimpleListDialogBuilder(Context context, FragmentManager fragmentManager) {
             super(context, fragmentManager, ListDialogFragment.class);
@@ -72,6 +79,20 @@ public class ListDialogFragment extends BaseDialogFragment {
 
         public SimpleListDialogBuilder setItems(int itemsArrayResID) {
             this.items = getResources().getStringArray(itemsArrayResID);
+            return this;
+        }
+
+        public SimpleListDialogBuilder setMultiChoiceItems(String[] items, boolean[] checkedItems) {
+            this.items = items;
+            mIsMultiChoice = true;
+            mCheckedItems = checkedItems;
+            return this;
+        }
+
+        public SimpleListDialogBuilder setMultiChoiceItems(int itemsArrayResID, boolean[] checkedItems) {
+            this.items = getResources().getStringArray(itemsArrayResID);
+            mIsMultiChoice = true;
+            mCheckedItems = checkedItems;
             return this;
         }
 
@@ -110,6 +131,8 @@ public class ListDialogFragment extends BaseDialogFragment {
             args.putString(SimpleDialogFragment.ARG_TITLE, title);
             args.putString(SimpleDialogFragment.ARG_POSITIVE_BUTTON, cancelButtonText);
             args.putStringArray(ARG_ITEMS, items);
+            args.putBoolean(ARG_IS_MULTICHOICE, mIsMultiChoice);
+            args.putBooleanArray(ARG_CHECKED_ITEMS, mCheckedItems);
 
             return args;
         }
@@ -132,23 +155,23 @@ public class ListDialogFragment extends BaseDialogFragment {
         }
 
         final String[] items = getItems();
+        final boolean[] checkedItems = getCheckedItems();
         if (items != null && items.length > 0) {
-            ListAdapter adapter = new ArrayAdapter<String>(getActivity(),
-                    R.layout.dialog_list_item,
-                    R.id.list_item_text,
-                    items);
-
-            builder.setItems(adapter, 0, new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    IListDialogListener onListItemSelectedListener = getDialogListener();
-                    if (onListItemSelectedListener != null) {
-                        onListItemSelectedListener
-                                .onListItemSelected(getItems()[position], position);
-                        dismiss();
+            if (isMultiChoice()) {
+                builder.setMultiChoiceItems(items, checkedItems);
+            } else {
+                builder.setItems(items, 0, new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        IListDialogListener onListItemSelectedListener = getDialogListener();
+                        if (onListItemSelectedListener != null) {
+                            onListItemSelectedListener
+                                    .onListItemSelected(getItems()[position], position);
+                            dismiss();
+                        }
                     }
-                }
-            });
+                });
+            };
         }
 
         return builder;
@@ -174,6 +197,14 @@ public class ListDialogFragment extends BaseDialogFragment {
 
     private String[] getItems() {
         return getArguments().getStringArray(ARG_ITEMS);
+    }
+
+    private boolean isMultiChoice() {
+        return getArguments().getBoolean(ARG_IS_MULTICHOICE);
+    }
+
+    private boolean[] getCheckedItems() {
+        return getArguments().getBooleanArray(ARG_CHECKED_ITEMS);
     }
 
     private String getPositiveButtonText() {

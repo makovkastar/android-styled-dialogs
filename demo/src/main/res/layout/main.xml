@@ -58,6 +58,11 @@
 			android:text="Dialog with list"
 			android:id="@+id/list_dialog" />
 
+        <Button
+            style="@style/Button"
+            android:text="Dialog with multiple choice list"
+            android:id="@+id/list_multichoice_dialog" />
+
 		<Button
 			style="@style/Button"
 			android:text="Dialog with custom view"

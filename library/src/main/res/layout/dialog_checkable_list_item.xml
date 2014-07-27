@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<eu.inmite.android.lib.dialogs.CheckableRelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/SDL.CheckableListItem">
+
+    <TextView
+        style="@style/SDL.TextView.Message"
+        android:id="@+id/list_item_text"
+        android:clickable="false"
+        android:focusable="false" />
+
+    <CheckBox
+        style="@style/SDL.CheckableListItem.CheckBox"
+        android:id="@+id/list_item_checkbox"
+        android:focusable="false" />
+</eu.inmite.android.lib.dialogs.CheckableRelativeLayout>

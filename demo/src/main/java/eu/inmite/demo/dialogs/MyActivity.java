@@ -109,6 +109,17 @@ public class MyActivity extends FragmentActivity implements
 
             }
         });
+        findViewById(R.id.list_multichoice_dialog).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ListDialogFragment
+                        .createBuilder(c, getSupportFragmentManager())
+                        .setTitle("Your favorite character:")
+                        .setMultiChoiceItems(new String[]{"Jayne", "Malcolm", "Kaylee",
+                                "Wash", "Zoe", "River"}, new boolean[] {true, false, true, true, false, false})
+                        .show();
+            }
+        });
         findViewById(R.id.custom_dialog).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

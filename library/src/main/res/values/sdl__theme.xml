@@ -171,6 +171,19 @@
 
     </style>
 
+    <style name="SDL.CheckableListItem">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">?android:listPreferredItemHeight</item>
+    </style>
+
+    <style name="SDL.CheckableListItem.CheckBox">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_alignParentRight">true</item>
+        <item name="android:layout_centerVertical">true</item>
+        <item name="android:layout_marginRight">@dimen/grid_4</item>
+    </style>
+
     <style
         name="ListItemText"
         parent="@android:style/Widget.TextView">

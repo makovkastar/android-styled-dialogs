@@ -31,12 +31,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import java.util.List;
 
 /**
  * Base dialog fragment for all your dialogs, stylable and same design on Android 2.2+.
@@ -154,9 +157,13 @@ public abstract class BaseDialogFragment extends DialogFragment {
 
 	private int mViewSpacingBottom;
 
-	private ListAdapter mListAdapter;
+	private CharSequence[] mItems;
 
 	private int mListCheckedItemIdx;
+
+    private boolean[] mListCheckedItems;
+
+    private boolean mIsMultiChoice;
 
 	private AdapterView.OnItemClickListener mOnItemClickListener;
 
@@ -268,13 +275,20 @@ public abstract class BaseDialogFragment extends DialogFragment {
 	 *
 	 * @param checkedItemIdx Item check by default, -1 if no item should be checked
 	 */
-	public Builder setItems(ListAdapter listAdapter, int checkedItemIdx,
+	public Builder setItems(CharSequence[] items, int checkedItemIdx,
 		final AdapterView.OnItemClickListener listener) {
-	    mListAdapter = listAdapter;
+        mItems = items;
 	    mOnItemClickListener = listener;
 	    mListCheckedItemIdx = checkedItemIdx;
 	    return this;
 	}
+
+    public Builder setMultiChoiceItems(CharSequence[] items, boolean[] checkedItems) {
+        mItems = items;
+        mListCheckedItems = checkedItems;
+        mIsMultiChoice = true;
+        return this;
+    }
 
 	public Builder setView(View view) {
 	    mView = view;
@@ -342,7 +356,7 @@ public abstract class BaseDialogFragment extends DialogFragment {
 	    mButtonBackgroundColorFocused = a
 		    .getColor(R.styleable.DialogStyle_buttonBackgroundColorFocused,
 			    defaultButtonBackgroundColorFocused);
-	    if (mListAdapter != null) {
+	    if (mItems != null) {
 		final int defaultListItemSeparatorColor = res
 			.getColor(R.color.sdl_list_item_separator_dark);
 		final int defaultListItemBackgroundColorNormal = res
@@ -392,24 +406,50 @@ public abstract class BaseDialogFragment extends DialogFragment {
 		content.addView(customPanel);
 	    }
 
-	    if (mListAdapter != null) {
-		ListView listView = (ListView) mInflater
-			.inflate(R.layout.dialog_part_list, content, false);
-		listView.setAdapter(mListAdapter);
-		listView.setDivider(getColoredListItemsDivider());
-		listView.setDividerHeight(1);
-		listView.setSelector(getListItemSelector());
-		listView.setOnItemClickListener(mOnItemClickListener);
-		if (mListCheckedItemIdx != -1) {
-		    listView.setSelection(mListCheckedItemIdx);
-		}
-		content.addView(listView);
+	    if (mItems != null) {
+		content.addView(createListView(content));
 	    }
 
 	    addButtons(content);
 
 	    return v;
 	}
+
+    private ListView createListView(ViewGroup parent) {
+        final ListView listView = (ListView) mInflater
+                .inflate(R.layout.dialog_part_list, parent, false);
+        ListAdapter adapter;
+        if (mIsMultiChoice) {
+            listView.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+            adapter = new ArrayAdapter<CharSequence>(
+                    mContext, R.layout.dialog_checkable_list_item, R.id.list_item_text, mItems) {
+                @Override
+                public View getView(int position, View convertView, ViewGroup parent) {
+                    View view = super.getView(position, convertView, parent);
+                    if (mListCheckedItems != null) {
+                        boolean isItemChecked = mListCheckedItems[position];
+                        if (isItemChecked) {
+                            listView.setItemChecked(position, true);
+                        }
+                    }
+                    return view;
+                }
+            };
+        } else {
+            adapter = new ArrayAdapter<CharSequence>(
+                    mContext, R.layout.dialog_list_item, R.id.list_item_text, mItems);
+            if (mListCheckedItemIdx != -1) {
+                listView.setSelection(mListCheckedItemIdx);
+            }
+        }
+
+        listView.setAdapter(adapter);
+        listView.setDivider(getColoredListItemsDivider());
+        listView.setDividerHeight(1);
+        listView.setSelector(getListItemSelector());
+        listView.setOnItemClickListener(mOnItemClickListener);
+        return listView;
+    }
 
 	private View getDialogLayoutAndInitTitle() {
 	    View v = mInflater.inflate(R.layout.dialog_part_title, mContainer, false);
